@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"sync"
+	"time"
 )
 
 // cache stores the keys
@@ -17,13 +18,35 @@ func main() {
 	}
 	log.Println("Listening on tcp://0.0.0.0:5000")
 
-	// waits for the next connection on the network
-	conn, err := newtwork.Accept()
-	log.Println("There is a new connection: ", conn)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// starts a loop to handle multiple connections
+	for {
+		// waits for the next connection on the network
+		conn, err := newtwork.Accept()
+		log.Println("Connected: ", conn)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	// keep the main goroutine alive (only for testing purposes)
-	select{}
+		go newSession(conn)
+	}
+}
+
+// newSession handles the new client's session.
+func newSession(conn net.Conn) {
+	// defer the close to guarantee the connection is closed when the session finishes
+	defer func() {
+		log.Println("Disconnected: ", conn)
+		conn.Close()
+	}()
+
+	// try recovering from an unexpected error (panics) in the current session
+	// this will prevent the server from dying
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("ERR: trying to recover: ", err)
+		}
+	}()
+
+	// keeps the goroutine running for 3 seconds before disconnecting (testing)
+	time.Sleep(3 * time.Second)
 }
