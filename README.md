@@ -3,4 +3,4 @@ GET, SET, DEL, QUIT
 
 Example with multiple connections sending commands at same time:
 
-![Example Image](https://github.com/wesleycremonini/pure-go-redis/example.jpeg)
+![Example Image](https://github.com/wesleycremonini/pure-go-redis/blob/main/example.jpeg)
