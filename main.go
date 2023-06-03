@@ -4,7 +4,6 @@ import (
 	"log"
 	"net"
 	"sync"
-	"time"
 )
 
 // cache stores the keys
@@ -32,6 +31,7 @@ func main() {
 }
 
 // newSession handles the new client's session.
+// Also responsible for listening and responding to commands.
 func newSession(conn net.Conn) {
 	// defer the close to guarantee the connection is closed when the session finishes
 	defer func() {
@@ -47,6 +47,17 @@ func newSession(conn net.Conn) {
 		}
 	}()
 
-	// keeps the goroutine running for 3 seconds before disconnecting (testing)
-	time.Sleep(3 * time.Second)
+	p := NewParser(conn)
+	for {
+		cmd, err := p.command()
+		if err != nil {
+			log.Println("Error", err)
+			conn.Write([]uint8("-ERR " + err.Error() + "\r\n"))
+			break
+		}
+		if !cmd.handle() {
+			// close the sesseion if cmd returns false
+			break
+		}
+	}
 }
